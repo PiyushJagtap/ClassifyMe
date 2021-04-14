@@ -7,6 +7,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Environment
 import android.util.Log
+import android.view.View
 import android.widget.Button
 import android.widget.Toast
 import androidx.camera.core.CameraSelector
@@ -16,7 +17,9 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import com.piyushjagtap.classifyme.databinding.ActivityMainBinding
+import com.piyushjagtap.classifyme.fragment.ImageViewFragment
 import java.io.File
 import java.io.File.separator
 import java.text.SimpleDateFormat
@@ -38,7 +41,10 @@ class MainActivity : AppCompatActivity() {
         private const val TAG = "MainActivity"
         private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
         private const val REQUEST_CODE_PERMISSIONS = 10
-        private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
+        private val REQUIRED_PERMISSIONS = arrayOf(
+            Manifest.permission.CAMERA,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE
+        )
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -46,7 +52,6 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         val view = binding.root
         setContentView(view)
-
         // Request camera permissions
         if (allPermissionsGranted()) {
             startCamera()
@@ -57,16 +62,22 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.cameraCaptureButton.setOnClickListener {
-//            Toast.makeText(this, "Click!!!", Toast.LENGTH_SHORT).show()
-            takePhoto()
+            Toast.makeText(this, "Click!!!", Toast.LENGTH_SHORT).show()
+            takePhoto(savedInstanceState)
         }
 
         outputDirectory = getOutputDirectory()
+        if (outputDirectory.exists()) {
+            Toast.makeText(this, "Directory Exists", Toast.LENGTH_SHORT).show()
+            Log.d(TAG, "onCreate: " + outputDirectory.absolutePath)
+        } else {
+            Toast.makeText(this, "Directory Does Not Exists", Toast.LENGTH_SHORT).show()
+        }
 
         cameraExecutor = Executors.newSingleThreadExecutor()
     }
 
-    private fun takePhoto() {
+    private fun takePhoto(savedInstanceState: Bundle?) {
         // Get a stable reference of the modifiable image capture use case
         val imageCapture = imageCapture ?: return
 
@@ -93,6 +104,7 @@ class MainActivity : AppCompatActivity() {
 
                 override fun onImageSaved(output: ImageCapture.OutputFileResults) {
                     val savedUri = Uri.fromFile(photoFile)
+                    openImageView(savedUri,savedInstanceState)
                     val msg = "Photo capture succeeded: $savedUri"
                     Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT).show()
                     Log.d(TAG, msg)
@@ -114,6 +126,9 @@ class MainActivity : AppCompatActivity() {
                     it.setSurfaceProvider(binding.viewFinder.createSurfaceProvider())
                 }
 
+            imageCapture = ImageCapture.Builder()
+                .build()
+
             // Select back camera as a default
             val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
 
@@ -123,7 +138,7 @@ class MainActivity : AppCompatActivity() {
 
                 // Bind use cases to camera
                 cameraProvider.bindToLifecycle(
-                    this, cameraSelector, preview
+                    this, cameraSelector, preview, imageCapture
                 )
 
             } catch (exc: Exception) {
@@ -134,14 +149,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun getOutputDirectory(): File {
-//        val mediaDir = externalMediaDirs.firstOrNull()?.let {
-//            File(it, resources.getString(R.string.app_name)).apply { mkdirs() }
-//        }
-        val mediaDir = File(
-            Environment.getDataDirectory().toString()
-                    + separator.toString()
-                    + getString(R.string.app_name)
-        )
+        val mediaDir = externalMediaDirs.firstOrNull()?.let {
+            File(it, resources.getString(R.string.app_name)).apply { mkdirs() }
+        }
         return if (mediaDir != null && mediaDir.exists())
             mediaDir else filesDir
     }
@@ -168,6 +178,24 @@ class MainActivity : AppCompatActivity() {
                 ).show()
                 finish()
             }
+        }
+    }
+
+    private fun openImageView(imgURI:Uri, savedInstanceState: Bundle?) {
+        if (savedInstanceState == null) {
+            if (!binding.imageViewFragmentContainer.isVisible){
+                binding.imageViewFragmentContainer.visibility =View.VISIBLE
+            }
+            supportFragmentManager
+                .beginTransaction()
+                .add(
+                    R.id.imageViewFragmentContainer,
+                    ImageViewFragment.newInstance(imgURI.toString(), "world"),
+                    "ImageViewFragment"
+                )
+                .commit()
+
+//            this.setVisible(false)
         }
     }
 
