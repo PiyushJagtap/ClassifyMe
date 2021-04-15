@@ -1,6 +1,7 @@
 package com.piyushjagtap.classifyme
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
@@ -104,7 +105,7 @@ class MainActivity : AppCompatActivity() {
 
                 override fun onImageSaved(output: ImageCapture.OutputFileResults) {
                     val savedUri = Uri.fromFile(photoFile)
-                    openImageView(savedUri,savedInstanceState)
+                    openImageView(savedUri, savedInstanceState)
                     val msg = "Photo capture succeeded: $savedUri"
                     Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT).show()
                     Log.d(TAG, msg)
@@ -181,22 +182,25 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun openImageView(imgURI:Uri, savedInstanceState: Bundle?) {
-        if (savedInstanceState == null) {
-            if (!binding.imageViewFragmentContainer.isVisible){
-                binding.imageViewFragmentContainer.visibility =View.VISIBLE
-            }
-            supportFragmentManager
-                .beginTransaction()
-                .add(
-                    R.id.imageViewFragmentContainer,
-                    ImageViewFragment.newInstance(imgURI.toString(), "world"),
-                    "ImageViewFragment"
-                )
-                .commit()
-
-//            this.setVisible(false)
+    private fun openImageView(imgURI: Uri, savedInstanceState: Bundle?) {
+//        if (savedInstanceState == null) {
+//            if (!binding.imageViewFragmentContainer.isVisible){
+//                binding.imageViewFragmentContainer.visibility =View.VISIBLE
+//            }
+//            supportFragmentManager
+//                .beginTransaction()
+//                .add(
+//                    R.id.imageViewFragmentContainer,
+//                    ImageViewFragment.newInstance(imgURI.toString(), "world"),
+//                    "ImageViewFragment"
+//                )
+//                .commit()
+        Log.d(TAG, "openImageView: ${imgURI.toString()}")
+        val intent = Intent(this, ImageViewActivity::class.java).apply {
+            action = Intent.ACTION_SEND
+            putExtra("imageURI", imgURI.toString())
         }
+        startActivity(intent)
     }
 
     override fun onDestroy() {
