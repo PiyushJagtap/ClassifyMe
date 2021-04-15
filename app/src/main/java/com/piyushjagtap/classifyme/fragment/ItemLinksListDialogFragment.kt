@@ -1,6 +1,7 @@
 package com.piyushjagtap.classifyme.fragment
 
 import android.os.Bundle
+import android.util.Log
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -33,6 +34,7 @@ class ItemLinksListDialogFragment : BottomSheetDialogFragment() {
             container,
             false
         )
+        Log.d(TAG, "onCreateView: ")
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -65,6 +67,7 @@ class ItemLinksListDialogFragment : BottomSheetDialogFragment() {
 
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             holder.text.text = position.toString()
+            holder.text.text = imageDisplayData
         }
 
         override fun getItemCount(): Int {
@@ -73,12 +76,22 @@ class ItemLinksListDialogFragment : BottomSheetDialogFragment() {
     }
 
     companion object {
+        private lateinit var imageDisplayData: String
+        private const val TAG = "ItemLinksListDialogFragment"
 
         // TODO: Customize parameters
         fun newInstance(itemCount: Int): ItemLinksListDialogFragment =
             ItemLinksListDialogFragment().apply {
                 arguments = Bundle().apply {
                     putInt(ARG_ITEM_COUNT, itemCount)
+                }
+            }
+
+        fun getImageData(imageData: String): ItemLinksListDialogFragment =
+            ItemLinksListDialogFragment().apply {
+                arguments = Bundle().apply {
+                    putString("imageData", imageData)
+                    imageDisplayData = imageData
                 }
             }
 

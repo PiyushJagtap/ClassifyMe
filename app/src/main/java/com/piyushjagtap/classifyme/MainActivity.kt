@@ -4,13 +4,11 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.os.Environment
+import android.provider.MediaStore
 import android.util.Log
-import android.view.View
-import android.widget.Button
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
@@ -18,14 +16,10 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.view.isVisible
 import com.piyushjagtap.classifyme.databinding.ActivityMainBinding
-import com.piyushjagtap.classifyme.fragment.ImageViewFragment
 import java.io.File
-import java.io.File.separator
 import java.text.SimpleDateFormat
 import java.util.*
-import java.util.concurrent.Executor
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -46,6 +40,7 @@ class MainActivity : AppCompatActivity() {
             Manifest.permission.CAMERA,
             Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE
         )
+        private const val PICK_IMAGE = 100
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -65,6 +60,11 @@ class MainActivity : AppCompatActivity() {
         binding.cameraCaptureButton.setOnClickListener {
             Toast.makeText(this, "Click!!!", Toast.LENGTH_SHORT).show()
             takePhoto(savedInstanceState)
+        }
+
+        binding.galleryImageButton.setOnClickListener {
+            Toast.makeText(this, "Gallery", Toast.LENGTH_SHORT).show()
+            openGallery()
         }
 
         outputDirectory = getOutputDirectory()
@@ -105,7 +105,7 @@ class MainActivity : AppCompatActivity() {
 
                 override fun onImageSaved(output: ImageCapture.OutputFileResults) {
                     val savedUri = Uri.fromFile(photoFile)
-                    openImageView(savedUri, savedInstanceState)
+                    openImageView(savedUri)
                     val msg = "Photo capture succeeded: $savedUri"
                     Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT).show()
                     Log.d(TAG, msg)
@@ -182,25 +182,32 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun openImageView(imgURI: Uri, savedInstanceState: Bundle?) {
-//        if (savedInstanceState == null) {
-//            if (!binding.imageViewFragmentContainer.isVisible){
-//                binding.imageViewFragmentContainer.visibility =View.VISIBLE
-//            }
-//            supportFragmentManager
-//                .beginTransaction()
-//                .add(
-//                    R.id.imageViewFragmentContainer,
-//                    ImageViewFragment.newInstance(imgURI.toString(), "world"),
-//                    "ImageViewFragment"
-//                )
-//                .commit()
+    private fun openImageView(imgURI: Uri) {
         Log.d(TAG, "openImageView: ${imgURI.toString()}")
         val intent = Intent(this, ImageViewActivity::class.java).apply {
             action = Intent.ACTION_SEND
             putExtra("imageURI", imgURI.toString())
         }
         startActivity(intent)
+    }
+
+    private fun openGallery() {
+        val intent = Intent(Intent.ACTION_GET_CONTENT)
+        intent.type = "image/*"
+//        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.INTERNAL_CONTENT_URI)
+        startActivityForResult(intent, PICK_IMAGE)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (resultCode == RESULT_OK && requestCode == PICK_IMAGE) {
+            val imageUri = data?.data
+            Log.d(TAG, "onActivityResult: $imageUri")
+            openImageView(imageUri!!)
+//            imageView.setImageURI(imageUri);
+        }else{
+            Log.d(TAG, "onActivityResult: $resultCode")
+        }
     }
 
     override fun onDestroy() {

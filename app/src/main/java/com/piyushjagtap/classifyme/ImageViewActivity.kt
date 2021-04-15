@@ -1,14 +1,11 @@
 package com.piyushjagtap.classifyme
 
-import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.Uri
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.provider.MediaStore
 import android.util.Log
+import androidx.appcompat.app.AppCompatActivity
 import com.piyushjagtap.classifyme.databinding.ActivityImageViewBinding
+
 
 class ImageViewActivity : AppCompatActivity() {
 
@@ -29,9 +26,16 @@ class ImageViewActivity : AppCompatActivity() {
         Log.d(TAG, "Image String : $imageString")
         imageURI = Uri.parse(imageString)
         Log.d(TAG, "Image URI : $imageURI")
-//        binding.imageView.setImageURI(imageURI)
-        var bitmap:Bitmap = MediaStore.Images.Media.getBitmap(this.contentResolver, imageURI)
-        binding.imageView.setImageBitmap(bitmap)
-//        binding.imageView.setImageURI(imageURI)
+        binding.imageView.setImageURI(imageURI)
+//        if (savedInstanceState == null) {
+//            Log.d(TAG, "FRAGMENT: ")
+//            supportFragmentManager
+//                .beginTransaction()
+//                .replace(
+//                    R.id.imageInfoContainer, ItemLinksListDialogFragment()
+//                )
+//                .addToBackStack(null)
+//                .commit()
+//        }
     }
 }
