@@ -1,60 +1,123 @@
 package com.piyushjagtap.classifyme.fragment
 
+import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Bundle
-import androidx.fragment.app.Fragment
+import android.provider.MediaStore
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.piyushjagtap.classifyme.R
+import android.widget.Toast
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
+import com.piyushjagtap.classifyme.databinding.FragmentImageViewBinding
+import com.piyushjagtap.classifyme.ml.ImageClassificationModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.tensorflow.lite.DataType
+import org.tensorflow.lite.support.image.TensorImage
+import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
+class ImageViewFragment(var imageUri: Uri) : Fragment() {
 
-/**
- * A simple [Fragment] subclass.
- * Use the [ImageViewFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
-class ImageViewFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
+    private var _binding: FragmentImageViewBinding? = null
+    private val binding get() = _binding!!
+
+//    private val viewModel   = ViewModelProvider(this).get(ImageInfoViewModel::class.java)
+
+    companion object {
+        private const val TAG = "ImageViewFragment"
+        lateinit var bitmap: Bitmap
+        private const val MIME = "text/html"
+        private const val ENCODING = "UTF-8"
+        private const val  INSTANCE_KEY = "ImageLabel"
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
+        Log.d(TAG, "onCreate: ")
     }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_image_view, container, false)
+        _binding = FragmentImageViewBinding.inflate(inflater, container, false)
+        return binding.root
+
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment ImageViewFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            ImageViewFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        //This Method needs to be overriden for the fragment to inflate the view.
+        Log.d(TAG, "onViewCreated: ")
+        Toast.makeText(context, "Fragment Image", Toast.LENGTH_SHORT).show()
+        binding.imageView.setImageURI(imageUri)
+//        binding.imageLabel.text = imageUri.toString()
+        Log.d(TAG, "onCreateView: $imageUri")
+
+        try {
+            GlobalScope.launch(Dispatchers.Default) {
+                val result = runModel(imageUri)
+                withContext(Dispatchers.Main) {
+                    Log.d(TAG, "Coroutine Result: $result")
+                    binding.imageLabel.text = result
+//                    savedInstanceState!!.putString(INSTANCE_KEY,result)
+//                    viewModel.setText(result)
                 }
             }
+        } catch (e: Exception) {
+            Log.e(TAG, "Model Error: $e")
+        }
+    }
+
+    private fun runModel(imageUri: Uri): String {
+        bitmap = MediaStore.Images.Media.getBitmap(context!!.contentResolver, imageUri)
+        val labels =
+            activity!!.application.assets.open("labels.txt").bufferedReader().use { it.readText() }
+                .split("\n")
+        var resized = Bitmap.createScaledBitmap(bitmap, 224, 224, true)
+        val model = ImageClassificationModel.newInstance(context!!)
+
+        var tbuffer = TensorImage.fromBitmap(resized)
+        var byteBuffer = tbuffer.buffer
+
+// Creates inputs for reference.
+        val inputFeature0 =
+            TensorBuffer.createFixedSize(intArrayOf(1, 224, 224, 3), DataType.UINT8)
+        inputFeature0.loadBuffer(byteBuffer)
+
+// Runs model inference and gets result.
+        val outputs = model.process(inputFeature0)
+        val outputFeature0 = outputs.outputFeature0AsTensorBuffer
+        var max = getMax(outputFeature0.floatArray)
+        Log.d(TAG, "Model Output : $outputFeature0")
+        return labels[max]
+//        GetImageInfoAsyncTask().execute()
+
+// Releases model resources if no longer used.
+        model.close()
+    }
+
+    private fun getMax(arr: FloatArray): Int {
+        var ind = 0;
+        var min = 0.0f;
+
+        for (i in 0..1000) {
+            if (arr[i] > min) {
+                min = arr[i]
+                ind = i;
+            }
+        }
+        return ind
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        Log.d(TAG, "onDestroyView: ")
+        _binding = null
     }
 }

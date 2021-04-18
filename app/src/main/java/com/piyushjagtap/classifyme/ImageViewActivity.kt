@@ -2,28 +2,20 @@ package com.piyushjagtap.classifyme
 
 import android.graphics.Bitmap
 import android.net.Uri
-import android.os.AsyncTask
 import android.os.Bundle
-import android.provider.MediaStore
 import android.util.Log
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.tabs.TabLayout
 import com.piyushjagtap.classifyme.adapter.TabsAdapter
 import com.piyushjagtap.classifyme.databinding.ActivityImageViewBinding
-import com.piyushjagtap.classifyme.ml.ImageClassificationModel
-import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
-import org.jsoup.select.Elements
-import org.tensorflow.lite.DataType
-import org.tensorflow.lite.support.image.TensorImage
-import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
 
 
 class ImageViewActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityImageViewBinding
     private lateinit var doc: Document
+    private lateinit var viewModel: ImageViewModel
 
     companion object {
         private const val TAG = "ImageViewActivity"
@@ -41,17 +33,22 @@ class ImageViewActivity : AppCompatActivity() {
         val viewBinding = binding.root
         setContentView(viewBinding)
 
+        imageString = intent.getStringExtra("imageURI")
+        Log.d(TAG, "Image String : $imageString")
+        imageURI = Uri.parse(imageString)
+        Log.d(TAG, "Image URI : $imageURI")
+
         binding.tabLayout.addTab(binding.tabLayout.newTab().setText("Image")
             .setIcon(R.drawable.ic_twotone_image_search_24))
         binding.tabLayout.addTab(binding.tabLayout.newTab().setText("Related Info...")
             .setIcon(R.drawable.ic_twotone_list_alt_24))
         binding.tabLayout.tabGravity = TabLayout.GRAVITY_FILL
-
         val tabAdapter = TabsAdapter(this, supportFragmentManager, binding.tabLayout.tabCount)
         binding.viewPager.adapter = tabAdapter
-
+        tabAdapter.setData(imageURI!!)
+//        binding.tabLayout.setupWithViewPager(binding.viewPager)
         binding.viewPager.addOnPageChangeListener(TabLayout.TabLayoutOnPageChangeListener(binding.tabLayout))
-        binding.tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener{
+        binding.tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab?) {
                 binding.viewPager.currentItem = tab!!.position
             }
@@ -64,42 +61,37 @@ class ImageViewActivity : AppCompatActivity() {
 
         })
 
-        imageString = intent.getStringExtra("imageURI")
-        Log.d(TAG, "Image String : $imageString")
-        imageURI = Uri.parse(imageString)
-        Log.d(TAG, "Image URI : $imageURI")
-        binding.imageView.setImageURI(imageURI)
-        try {
-            bitmap = MediaStore.Images.Media.getBitmap(this.contentResolver, imageURI)
-            val labels =
-                application.assets.open("labels.txt").bufferedReader().use { it.readText() }
-                    .split("\n")
-            var resized = Bitmap.createScaledBitmap(bitmap, 224, 224, true)
-            val model = ImageClassificationModel.newInstance(this)
-
-            var tbuffer = TensorImage.fromBitmap(resized)
-            var byteBuffer = tbuffer.buffer
-
-// Creates inputs for reference.
-            val inputFeature0 =
-                TensorBuffer.createFixedSize(intArrayOf(1, 224, 224, 3), DataType.UINT8)
-            inputFeature0.loadBuffer(byteBuffer)
-
-// Runs model inference and gets result.
-            val outputs = model.process(inputFeature0)
-            val outputFeature0 = outputs.outputFeature0AsTensorBuffer
-            var max = getMax(outputFeature0.floatArray)
-            Log.d(TAG, "Model Output : $outputFeature0")
-            val outputLabel = labels[max]
-            binding.imageName.text = outputLabel
-            GetImageInfoAsyncTask(outputLabel).execute()
-
-// Releases model resources if no longer used.
-            model.close()
-        } catch (e: Exception) {
-            Log.e(TAG, "Model: $e")
-        }
-//        binding.webView.settings.javaScriptEnabled = true
+//        binding.imageView.setImageURI(imageURI)
+//        try {
+//            bitmap = MediaStore.Images.Media.getBitmap(this.contentResolver, imageURI)
+//            val labels =
+//                application.assets.open("labels.txt").bufferedReader().use { it.readText() }
+//                    .split("\n")
+//            var resized = Bitmap.createScaledBitmap(bitmap, 224, 224, true)
+//            val model = ImageClassificationModel.newInstance(this)
+//
+//            var tbuffer = TensorImage.fromBitmap(resized)
+//            var byteBuffer = tbuffer.buffer
+//
+//// Creates inputs for reference.
+//            val inputFeature0 =
+//                TensorBuffer.createFixedSize(intArrayOf(1, 224, 224, 3), DataType.UINT8)
+//            inputFeature0.loadBuffer(byteBuffer)
+//
+//// Runs model inference and gets result.
+//            val outputs = model.process(inputFeature0)
+//            val outputFeature0 = outputs.outputFeature0AsTensorBuffer
+//            var max = getMax(outputFeature0.floatArray)
+//            Log.d(TAG, "Model Output : $outputFeature0")
+//            val outputLabel = labels[max]
+//            binding.imageName.text = outputLabel
+//            GetImageInfoAsyncTask(outputLabel).execute()
+//
+//// Releases model resources if no longer used.
+//            model.close()
+//        } catch (e: Exception) {
+//            Log.e(TAG, "Model: $e")
+//        }
 
 
         //        binding.webView.loadUrl(
@@ -131,34 +123,34 @@ class ImageViewActivity : AppCompatActivity() {
         return ind
     }
 
-    inner class GetImageInfoAsyncTask(private val outputLabel: String) :
-        AsyncTask<Void, Void, String>() {
-        override fun onPreExecute() {
-            super.onPreExecute()
-            Toast.makeText(this@ImageViewActivity, "Loading Resources...", Toast.LENGTH_SHORT)
-                .show()
-        }
-
-        override fun doInBackground(vararg params: Void?): String {
-            val outputLabel = outputLabel
-//            val inputSearchString = File("search?q=$outputLabel")
-//            val document = Jsoup.parse(
-//                inputSearchString, "UTF-8",
-//                "https://www.google.com/"
-//            )
-            val document = Jsoup.connect("https://www.google.com/search?q=$outputLabel").get()
-            Log.d(TAG, "doInBackground:document $document")
-            return document.toString()
-        }
-
-        override fun onPostExecute(result: String?) {
-            super.onPostExecute(result)
-            Log.d(TAG, "onPostExecute: result$result")
-            val document = Jsoup.parse(result)
-            Log.d(TAG, "onPostExecute: document$document")
-            val divSelection: Elements? = document.select("div.GyAeWb")
-            Log.d(TAG, "onPostExecute: element$divSelection")
-            binding.webView.loadData(divSelection.toString(), MIME, ENCODING)
-        }
-    }
+//    inner class GetImageInfoAsyncTask(private val outputLabel: String) :
+//        AsyncTask<Void, Void, String>() {
+//        override fun onPreExecute() {
+//            super.onPreExecute()
+//            Toast.makeText(this@ImageViewActivity, "Loading Resources...", Toast.LENGTH_SHORT)
+//                .show()
+//        }
+//
+//        override fun doInBackground(vararg params: Void?): String {
+//            val outputLabel = outputLabel
+////            val inputSearchString = File("search?q=$outputLabel")
+////            val document = Jsoup.parse(
+////                inputSearchString, "UTF-8",
+////                "https://www.google.com/"
+////            )
+//            val document = Jsoup.connect("https://www.google.com/search?q=$outputLabel").get()
+//            Log.d(TAG, "doInBackground:document $document")
+//            return document.toString()
+//        }
+//
+//        override fun onPostExecute(result: String?) {
+//            super.onPostExecute(result)
+//            Log.d(TAG, "onPostExecute: result$result")
+//            val document = Jsoup.parse(result)
+//            Log.d(TAG, "onPostExecute: document$document")
+//            val divSelection: Elements? = document.select("div.GyAeWb")
+//            Log.d(TAG, "onPostExecute: element$divSelection")
+//            binding.webView.loadData(divSelection.toString(), MIME, ENCODING)
+//        }
+//    }
 }
