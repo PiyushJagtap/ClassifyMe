@@ -3,12 +3,17 @@ package com.piyushjagtap.classifyme
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
+import android.provider.MediaStore
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.tabs.TabLayout
 import com.piyushjagtap.classifyme.adapter.TabsAdapter
 import com.piyushjagtap.classifyme.databinding.ActivityImageViewBinding
+import com.piyushjagtap.classifyme.ml.ImageClassificationModel
 import org.jsoup.nodes.Document
+import org.tensorflow.lite.DataType
+import org.tensorflow.lite.support.image.TensorImage
+import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
 
 
 class ImageViewActivity : AppCompatActivity() {
@@ -20,8 +25,8 @@ class ImageViewActivity : AppCompatActivity() {
     companion object {
         private const val TAG = "ImageViewActivity"
         private var imageString: String? = null
-        private var imageURI: Uri? = null
-        lateinit var bitmap: Bitmap
+        private lateinit var imageURI: Uri
+        private lateinit var bitmap: Bitmap
         private const val MIME = "text/html"
         private const val ENCODING = "UTF-8"
 
@@ -37,7 +42,24 @@ class ImageViewActivity : AppCompatActivity() {
         Log.d(TAG, "Image String : $imageString")
         imageURI = Uri.parse(imageString)
         Log.d(TAG, "Image URI : $imageURI")
+        val result = runModel(imageURI)
 
+
+//        try {
+//            GlobalScope.launch(Dispatchers.Default) {
+//                val result = runModel(imageURI)
+//                withContext(Dispatchers.Main) {
+//                    Log.d(TAG, "Coroutine Result: $result")
+//                    imageLabel = result
+////                    binding.imageLabel.text = result
+////                    savedInstanceState!!.putString(INSTANCE_KEY,result)
+////                    viewModel.setText(result)
+//                }
+//            }
+//        } catch (e: Exception) {
+//            Log.e(TAG, "Model Error: $e")
+//        }
+//        Log.d(TAG, "onCreate: Label $imageLabel")
         binding.tabLayout.addTab(binding.tabLayout.newTab().setText("Image")
             .setIcon(R.drawable.ic_twotone_image_search_24))
         binding.tabLayout.addTab(binding.tabLayout.newTab().setText("Related Info...")
@@ -45,7 +67,7 @@ class ImageViewActivity : AppCompatActivity() {
         binding.tabLayout.tabGravity = TabLayout.GRAVITY_FILL
         val tabAdapter = TabsAdapter(this, supportFragmentManager, binding.tabLayout.tabCount)
         binding.viewPager.adapter = tabAdapter
-        tabAdapter.setData(imageURI!!)
+        tabAdapter.setData(imageURI, result)
 //        binding.tabLayout.setupWithViewPager(binding.viewPager)
         binding.viewPager.addOnPageChangeListener(TabLayout.TabLayoutOnPageChangeListener(binding.tabLayout))
         binding.tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
@@ -110,6 +132,41 @@ class ImageViewActivity : AppCompatActivity() {
 
     }
 
+    private fun runModel(imageUri: Uri): String {
+        var result: String? = null
+        try {
+            bitmap =
+                MediaStore.Images.Media.getBitmap(contentResolver, imageUri)
+            val labels =
+                application.assets.open("labels.txt").bufferedReader().use { it.readText() }
+                    .split("\n")
+            var resized = Bitmap.createScaledBitmap(bitmap, 224, 224, true)
+            val model = ImageClassificationModel.newInstance(this)
+
+            var tbuffer = TensorImage.fromBitmap(resized)
+            var byteBuffer = tbuffer.buffer
+
+// Creates inputs for reference.
+            val inputFeature0 =
+                TensorBuffer.createFixedSize(intArrayOf(1, 224, 224, 3), DataType.UINT8)
+            inputFeature0.loadBuffer(byteBuffer)
+
+// Runs model inference and gets result.
+            val outputs = model.process(inputFeature0)
+            val outputFeature0 = outputs.outputFeature0AsTensorBuffer
+            var max = getMax(outputFeature0.floatArray)
+            Log.d(TAG, "Model Output : $outputFeature0")
+            result = labels[max]
+//        GetImageInfoAsyncTask().execute()
+
+// Releases model resources if no longer used.
+            model.close()
+        } catch (e: Exception) {
+            Log.e(TAG, "runModel: $e")
+        }
+        return result!!
+    }
+
     private fun getMax(arr: FloatArray): Int {
         var ind = 0;
         var min = 0.0f;
@@ -123,7 +180,7 @@ class ImageViewActivity : AppCompatActivity() {
         return ind
     }
 
-//    inner class GetImageInfoAsyncTask(private val outputLabel: String) :
+    //    inner class GetImageInfoAsyncTask(private val outputLabel: String) :
 //        AsyncTask<Void, Void, String>() {
 //        override fun onPreExecute() {
 //            super.onPreExecute()
