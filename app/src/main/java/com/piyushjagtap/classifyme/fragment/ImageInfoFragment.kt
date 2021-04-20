@@ -1,11 +1,14 @@
 package com.piyushjagtap.classifyme.fragment
 
+import android.os.AsyncTask
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.piyushjagtap.classifyme.adapter.RecyclerViewAdapter
 import com.piyushjagtap.classifyme.databinding.ImageInfoFragmentBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -15,6 +18,7 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.jsoup.select.Elements
+import kotlin.concurrent.thread
 
 class ImageInfoFragment(var imageLabel: String) : Fragment() {
 
@@ -34,45 +38,116 @@ class ImageInfoFragment(var imageLabel: String) : Fragment() {
         savedInstanceState: Bundle?,
     ): View? {
         _binding = ImageInfoFragmentBinding.inflate(inflater, container, false)
+        Log.d(TAG, "onCreateView: ")
+        GetImageElementsAsyncTask(imageLabel).execute()
         return binding.root
 //        inflater.inflate(R.layout.image_info_fragment, container, false)
-        Log.d(TAG, "onCreateView: ")
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         Log.d(TAG, "onViewCreated: ")
-        binding.text.text = imageLabel
-        var doc:Document? = null
-        try {
-            GlobalScope.launch(Dispatchers.Default) {
-                doc =  Jsoup.connect("https://www.google.com/search?q=image+classification").get()
-//                val result = runModel(imageURI)
-                withContext(Dispatchers.Main) {
-                    val element:Elements = doc!!.getElementsByClass("tF2Cxc")
-                    binding.webView.loadData(element.toString(), MIME, ENCODING)
-                    Log.d(TAG, "WebView: $element")
-//                    Log.d(TAG, "Coroutine Result: $result")
-//                    imageLabel = result
-//                    binding.imageLabel.text = result
-//                    savedInstanceState!!.putString(INSTANCE_KEY,result)
-//                    viewModel.setText(result)
-                }
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Model Error: $e")
-        }
-//        var label = savedInstanceState!!.getString("ImageLabel")
-//        Log.d(TAG, "onActivityCreated: $label")
+//        binding.text.text = imageLabel
+//        GetImageElementsAsyncTask().execute()
+//        thread {
+//            val doc =
+//                Jsoup.connect("https://www.google.com/search?q=image+classification").get()
+//            val linkLists = doc!!.getElementsByClass("eqAnXb")
+//            val divElements = linkLists[0].getElementsByClass("tF2Cxc")
+//            Log.d(TAG, "Main: $linkLists")
+//            Log.d(TAG, "Div: $divElements")
+//            val elementsList = ArrayList<ElementListItem>()
+//
+//            for (divElement in divElements) {
+//                val linkTitle = divElement.getElementsByTag("h3")[0].ownText().toString()
+//                val linkUrl = divElement.getElementsByTag("a")[0].absUrl("href")
+//                val linkDescription = divElement.getElementsByTag("span").text().toString()
+//                Log.d(TAG,
+//                    "Div Elements:Title: $linkTitle \n Url: $linkUrl \n Desc: $linkDescription")
+//                elementsList.add(ElementListItem(linkTitle, linkUrl, linkDescription))
+//            }
+//            activity!!.runOnUiThread {
+//                val recyclerViewAdapter = RecyclerViewAdapter(elementsList)
+//                val linearLayoutManager = LinearLayoutManager(context)
+//                binding.recyclerView.layoutManager = linearLayoutManager
+//                binding.recyclerView.adapter = recyclerViewAdapter
+//            }
+//        }
+//            GlobalScope.launch(Dispatchers.Default) {
+//                val doc =
+//                    Jsoup.connect("https://www.google.com/search?q=image+classification").get()
+//                val linkLists = doc!!.getElementsByClass("eqAnXb")
+//                val divElements = linkLists[0].getElementsByClass("tF2Cxc")
+//                Log.d(TAG, "Main: $linkLists")
+//                Log.d(TAG, "Div: $divElements")
+//                val elementsList = ArrayList<ElementListItem>()
+//
+//                for (divElement in divElements) {
+//                    val linkTitle = divElement.getElementsByTag("h3")[0].ownText().toString()
+//                    val linkUrl = divElement.getElementsByTag("a")[0].absUrl("href")
+//                    val linkDescription = divElement.getElementsByTag("span").text().toString()
+//                    Log.d(TAG,
+//                        "Div Elements:Title: $linkTitle \n Url: $linkUrl \n Desc: $linkDescription")
+//                    elementsList.add(ElementListItem(linkTitle, linkUrl, linkDescription))
+//                }
+//                withContext(Dispatchers.Main) {
+//                    val recyclerViewAdapter = RecyclerViewAdapter(elementsList)
+//                    val linearLayoutManager = LinearLayoutManager(context)
+//                    binding.recyclerView.layoutManager = linearLayoutManager
+//                    binding.recyclerView.adapter = recyclerViewAdapter
+//                }
+//            }
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         Log.d(TAG, "onActivityCreated: ")
-//        viewModel = ViewModelProvider(this).get(ImageInfoViewModel::class.java)
-//        viewModel.getText()!!.observe(viewLifecycleOwner, Observer {
-//            Log.d(TAG, "onActivityCreated: $it")
-//        })
+    }
+
+    inner class GetImageElementsAsyncTask(var imageLabel: String) :
+        AsyncTask<Void, Int, ArrayList<ElementListItem>>() {
+        override fun onPreExecute() {
+            super.onPreExecute()
+        }
+
+        override fun onProgressUpdate(vararg values: Int?) {
+            super.onProgressUpdate(*values)
+            Log.d(TAG, "onProgressUpdate: $values")
+        }
+
+        override fun doInBackground(vararg params: Void?): ArrayList<ElementListItem> {
+            val doc =
+                Jsoup.connect("https://www.google.com/search?q=$imageLabel").get()
+            val linkLists = doc!!.getElementsByClass("eqAnXb")
+            val divElements = linkLists[0].getElementsByClass("tF2Cxc")
+            Log.d(TAG, "Main: $linkLists")
+            Log.d(TAG, "Div: $divElements")
+            val elementsList = ArrayList<ElementListItem>()
+
+            for (divElement in divElements) {
+                val linkTitle = divElement.getElementsByTag("h3")[0].ownText().toString()
+                val linkUrl = divElement.getElementsByTag("a")[0].absUrl("href")
+//                val linkDescription = divElement.getElementsByTag("span")[0].text().toString()
+                val linkDescription = divElement.getElementsByClass("aCOpRe")[0].text().toString()
+                Log.d(TAG,
+                    "Div Elements:Title: $linkTitle \n Url: $linkUrl \n Desc: $linkDescription")
+                elementsList.add(ElementListItem(linkTitle, linkUrl, linkDescription))
+            }
+            return elementsList
+        }
+
+        override fun onPostExecute(result: ArrayList<ElementListItem>) {
+            super.onPostExecute(result)
+            if (!result.isNullOrEmpty()) {
+                Log.d(TAG, "onPostExecute: ${result.size}")
+                val recyclerViewAdapter = RecyclerViewAdapter(result)
+                recyclerViewAdapter.notifyDataSetChanged()
+                val linearLayoutManager = LinearLayoutManager(context)
+                binding.recyclerView.layoutManager = linearLayoutManager
+                binding.recyclerView.setHasFixedSize(true)
+                binding.recyclerView.adapter = recyclerViewAdapter
+            }
+        }
     }
 
 }

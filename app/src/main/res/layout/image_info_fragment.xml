@@ -6,21 +6,10 @@
     android:orientation="vertical"
     tools:context=".fragment.ImageInfoFragment">
 
-    <TextView
-        android:id="@+id/text"
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="Hello" />
-
-<!--    <androidx.recyclerview.widget.RecyclerView-->
-<!--        android:id="@+id/recycler_view"-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="match_parent"/>-->
-
-    <WebView
-        android:id="@+id/web_view"
-        android:padding="10dp"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:padding="5dp" />
 
 </LinearLayout>

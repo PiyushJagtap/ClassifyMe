@@ -2,9 +2,11 @@ package com.piyushjagtap.classifyme
 
 import android.graphics.Bitmap
 import android.net.Uri
+import android.os.AsyncTask
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
+import android.widget.ProgressBar
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.tabs.TabLayout
 import com.piyushjagtap.classifyme.adapter.TabsAdapter
@@ -43,7 +45,10 @@ class ImageViewActivity : AppCompatActivity() {
         imageURI = Uri.parse(imageString)
         Log.d(TAG, "Image URI : $imageURI")
         val result = runModel(imageURI)
-
+//        val resultAsync = GetImageLabelAsync(imageURI).execute().get()
+//        Log.d(TAG, "onCreate: $resultAsync")
+//        val result = GetImageLabelAsync(imageURI).execute().get()
+        Log.d(TAG, "Model Result: $result")
 
 //        try {
 //            GlobalScope.launch(Dispatchers.Default) {
@@ -210,4 +215,22 @@ class ImageViewActivity : AppCompatActivity() {
 //            binding.webView.loadData(divSelection.toString(), MIME, ENCODING)
 //        }
 //    }
+
+    inner class GetImageLabelAsync(var imageUri: Uri): AsyncTask<Void, Void, String>() {
+        override fun doInBackground(vararg params: Void?): String {
+            return runModel(imageUri)
+        }
+
+        override fun onPreExecute() {
+            super.onPreExecute()
+        }
+
+        override fun onPostExecute(result: String?){
+            super.onPostExecute(result)
+        }
+
+        override fun onProgressUpdate(vararg values: Void?) {
+            super.onProgressUpdate(*values)
+        }
+    }
 }
