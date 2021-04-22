@@ -17,7 +17,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ClassifyMe">
         <activity android:name=".ImageViewActivity" />
-        <activity android:name=".MainActivity">
+        <activity android:name=".MainActivity" android:theme="@style/MainTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

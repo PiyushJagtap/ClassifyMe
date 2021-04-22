@@ -45,7 +45,6 @@ class ImageViewActivity : AppCompatActivity() {
         imageURI = Uri.parse(imageString)
         Log.d(TAG, "Image URI : $imageURI")
         val result = runModel(imageURI)
-//        val resultAsync = GetImageLabelAsync(imageURI).execute().get()
 //        Log.d(TAG, "onCreate: $resultAsync")
 //        val result = GetImageLabelAsync(imageURI).execute().get()
         Log.d(TAG, "Model Result: $result")
@@ -71,9 +70,10 @@ class ImageViewActivity : AppCompatActivity() {
             .setIcon(R.drawable.ic_twotone_list_alt_24))
         binding.tabLayout.tabGravity = TabLayout.GRAVITY_FILL
         val tabAdapter = TabsAdapter(this, supportFragmentManager, binding.tabLayout.tabCount)
-        binding.viewPager.adapter = tabAdapter
+//        GetImageLabelAsync(imageURI,tabAdapter).execute()
         tabAdapter.setData(imageURI, result)
-//        binding.tabLayout.setupWithViewPager(binding.viewPager)
+        binding.viewPager.adapter = tabAdapter
+
         binding.viewPager.addOnPageChangeListener(TabLayout.TabLayoutOnPageChangeListener(binding.tabLayout))
         binding.tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab?) {
@@ -216,7 +216,8 @@ class ImageViewActivity : AppCompatActivity() {
 //        }
 //    }
 
-    inner class GetImageLabelAsync(var imageUri: Uri): AsyncTask<Void, Void, String>() {
+    inner class GetImageLabelAsync(var imageUri: Uri, var tabsAdapter: TabsAdapter) :
+        AsyncTask<Void, Void, String>() {
         override fun doInBackground(vararg params: Void?): String {
             return runModel(imageUri)
         }
@@ -225,8 +226,9 @@ class ImageViewActivity : AppCompatActivity() {
             super.onPreExecute()
         }
 
-        override fun onPostExecute(result: String?){
+        override fun onPostExecute(result: String?) {
             super.onPostExecute(result)
+            tabsAdapter.setData(imageUri, result!!)
         }
 
         override fun onProgressUpdate(vararg values: Void?) {

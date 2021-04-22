@@ -13,9 +13,10 @@
         android:orientation="horizontal"
         android:visibility="visible"
         android:weightSum="5"
+        android:background="@color/semi_transparent"
         android:layout_alignParentBottom="true"
-        android:layout_marginBottom="50dp"
-        android:elevation="2dp">
+        android:layout_marginBottom="48dp"
+        android:elevation="1dp">
 
         <ImageButton
             android:id="@+id/previousImages"
@@ -63,6 +64,14 @@
         android:id="@+id/viewFinder"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
+
+    <ProgressBar
+        android:id="@+id/progress_circular"
+        style="@android:style/Widget.Material.ProgressBar.Large"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:visibility="invisible" />
 
     <!--    <LinearLayout-->
     <!--        android:id="@+id/imageViewFragmentContainer"-->

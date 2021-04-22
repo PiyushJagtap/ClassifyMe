@@ -39,7 +39,11 @@ class ImageInfoFragment(var imageLabel: String) : Fragment() {
     ): View? {
         _binding = ImageInfoFragmentBinding.inflate(inflater, container, false)
         Log.d(TAG, "onCreateView: ")
-        GetImageElementsAsyncTask(imageLabel).execute()
+        try {
+            GetImageElementsAsyncTask(imageLabel).execute()
+        } catch (e: Exception) {
+            Log.e(TAG, "Web Scraping Error: $e")
+        }
         return binding.root
 //        inflater.inflate(R.layout.image_info_fragment, container, false)
     }
@@ -108,11 +112,13 @@ class ImageInfoFragment(var imageLabel: String) : Fragment() {
         AsyncTask<Void, Int, ArrayList<ElementListItem>>() {
         override fun onPreExecute() {
             super.onPreExecute()
+            binding.progressCircular.visibility = View.VISIBLE
         }
 
         override fun onProgressUpdate(vararg values: Int?) {
             super.onProgressUpdate(*values)
             Log.d(TAG, "onProgressUpdate: $values")
+            binding.progressCircular.visibility = View.VISIBLE
         }
 
         override fun doInBackground(vararg params: Void?): ArrayList<ElementListItem> {
@@ -139,6 +145,7 @@ class ImageInfoFragment(var imageLabel: String) : Fragment() {
         override fun onPostExecute(result: ArrayList<ElementListItem>) {
             super.onPostExecute(result)
             if (!result.isNullOrEmpty()) {
+                binding.progressCircular.visibility = View.INVISIBLE
                 Log.d(TAG, "onPostExecute: ${result.size}")
                 val recyclerViewAdapter = RecyclerViewAdapter(result)
                 recyclerViewAdapter.notifyDataSetChanged()

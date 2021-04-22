@@ -31,7 +31,7 @@
                 android:layout_margin="5dp"
                 android:autoLink="all"
                 android:textSize="15sp"
-                android:paddingLeft="10dp" />
+                android:paddingLeft="5dp" />
 
             <TextView
                 android:id="@+id/web_description_txt"

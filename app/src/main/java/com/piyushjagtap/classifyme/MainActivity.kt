@@ -3,10 +3,14 @@ package com.piyushjagtap.classifyme
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
+import android.view.View
+import android.view.Window
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.CameraSelector
@@ -16,6 +20,7 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import com.piyushjagtap.classifyme.databinding.ActivityMainBinding
 import java.io.File
 import java.text.SimpleDateFormat
@@ -44,8 +49,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        window.requestFeature(Window.FEATURE_ACTION_BAR_OVERLAY)
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
+        supportActionBar!!.setBackgroundDrawable(ColorDrawable(resources.getColor(R.color.semi_transparent)))
+        supportActionBar!!.setDisplayHomeAsUpEnabled(true)
+//        TODO(supportActionBar!!.setBackgroundDrawable())
+        supportActionBar!!.setDisplayUseLogoEnabled(true)
+//        supportActionBar!!.elevation = 0F
         val view = binding.root
         setContentView(view)
         // Request camera permissions
@@ -79,6 +90,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun takePhoto(savedInstanceState: Bundle?) {
+        if (!binding.progressCircular.isVisible) {
+            binding.progressCircular.visibility = View.VISIBLE
+        }
         // Get a stable reference of the modifiable image capture use case
         val imageCapture = imageCapture ?: return
 
@@ -166,7 +180,7 @@ class MainActivity : AppCompatActivity() {
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
-        grantResults: IntArray
+        grantResults: IntArray,
     ) {
         if (requestCode == REQUEST_CODE_PERMISSIONS) {
             if (allPermissionsGranted()) {
@@ -188,6 +202,9 @@ class MainActivity : AppCompatActivity() {
             action = Intent.ACTION_SEND
             putExtra("imageURI", imgURI.toString())
         }
+        if (binding.progressCircular.isVisible) {
+            binding.progressCircular.visibility = View.INVISIBLE
+        }
         startActivity(intent)
     }
 
@@ -205,7 +222,7 @@ class MainActivity : AppCompatActivity() {
             Log.d(TAG, "onActivityResult: $imageUri")
             openImageView(imageUri!!)
 //            imageView.setImageURI(imageUri);
-        }else{
+        } else {
             Log.d(TAG, "onActivityResult: $resultCode")
         }
     }

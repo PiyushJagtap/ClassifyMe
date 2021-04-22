@@ -6,12 +6,6 @@
     android:orientation="vertical"
     tools:context=".fragment.ImageViewFragment">
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="5dp"
-        android:text="Swipe To Check more information related to the image ---->" />
-
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -26,11 +20,12 @@
             <ImageView
                 android:id="@+id/image_view"
                 android:layout_width="match_parent"
-                android:layout_height="300dp"
+                android:layout_height="400dp"
                 android:adjustViewBounds="true"
                 android:elevation="4dp"
+                android:rotation="90"
                 android:contentDescription="Image"
-                android:scaleType="centerCrop" />
+                android:scaleType="fitCenter" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -43,11 +38,22 @@
                     android:id="@+id/image_label"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Image Label"
-                    android:textAppearance="?attr/textAppearanceHeadline6" />
+                    android:text="@string/image_view_fragment_image_label"
+                    android:textAppearance="?attr/textAppearanceHeadline6"
+                    android:textAllCaps="true"
+                    android:textColor="@color/red_500_secondary"/>
             </LinearLayout>
         </LinearLayout>
     </androidx.cardview.widget.CardView>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="5dp"
+        android:gravity="center"
+        android:textColor="@color/black"
+        android:text="@string/image_view_fragment_swipe_txt" />
 
 
 </LinearLayout>

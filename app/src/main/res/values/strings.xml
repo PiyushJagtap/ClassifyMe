@@ -5,4 +5,8 @@
     <string name="title_activity_image_view2">ImageViewActivity2</string>
     <string name="tab_text_1">Tab 1</string>
     <string name="tab_text_2">Tab 2</string>
+
+
+    <string name="image_view_fragment_image_label">Image Label</string>
+    <string name="image_view_fragment_swipe_txt">Swipe To Check more information related to the image ----></string>
 </resources>
