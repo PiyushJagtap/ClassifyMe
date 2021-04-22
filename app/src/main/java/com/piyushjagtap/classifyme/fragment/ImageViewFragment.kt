@@ -1,27 +1,27 @@
 package com.piyushjagtap.classifyme.fragment
 
+import android.R
+import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Matrix
+import android.hardware.SensorManager.getOrientation
+import android.media.ExifInterface
 import android.net.Uri
 import android.os.Bundle
-import android.provider.MediaStore
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
 import com.piyushjagtap.classifyme.databinding.FragmentImageViewBinding
-import com.piyushjagtap.classifyme.ml.ImageClassificationModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import org.tensorflow.lite.DataType
-import org.tensorflow.lite.support.image.TensorImage
-import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
+import com.squareup.picasso.Picasso
+import java.io.IOException
+import java.io.InputStream
 
-class ImageViewFragment(var imageUri: Uri,var imageLabel:String) : Fragment() {
+
+class ImageViewFragment(var imageUri: Uri, var imageLabel: String) : Fragment() {
 
     private var _binding: FragmentImageViewBinding? = null
     private val binding get() = _binding!!
@@ -33,7 +33,7 @@ class ImageViewFragment(var imageUri: Uri,var imageLabel:String) : Fragment() {
         lateinit var bitmap: Bitmap
         private const val MIME = "text/html"
         private const val ENCODING = "UTF-8"
-        private const val  INSTANCE_KEY = "ImageLabel"
+        private const val INSTANCE_KEY = "ImageLabel"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -55,8 +55,15 @@ class ImageViewFragment(var imageUri: Uri,var imageLabel:String) : Fragment() {
         //This Method needs to be overriden for the fragment to inflate the view.
         Log.d(TAG, "onViewCreated: ")
         Toast.makeText(context, "Fragment Image", Toast.LENGTH_SHORT).show()
-        binding.imageView.setImageURI(imageUri)
+
+//        binding.imageView.setImageURI(imageUri)
+        Picasso.get()
+            .load(imageUri)
+            .fit()
+            .centerInside()
+            .into(binding.imageView)
         binding.imageLabel.text = imageLabel
+
 //        Log.d(TAG, "onCreateView: $imageUri")
 
 //        try {
@@ -120,4 +127,6 @@ class ImageViewFragment(var imageUri: Uri,var imageLabel:String) : Fragment() {
         Log.d(TAG, "onDestroyView: ")
         _binding = null
     }
+
+
 }

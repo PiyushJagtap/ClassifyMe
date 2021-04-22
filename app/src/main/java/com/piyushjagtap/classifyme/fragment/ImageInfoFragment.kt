@@ -131,13 +131,41 @@ class ImageInfoFragment(var imageLabel: String) : Fragment() {
             val elementsList = ArrayList<ElementListItem>()
 
             for (divElement in divElements) {
-                val linkTitle = divElement.getElementsByTag("h3")[0].ownText().toString()
-                val linkUrl = divElement.getElementsByTag("a")[0].absUrl("href")
+                if (divElement != null && divElement.childrenSize() != 0) {
+                    val linkTitle = divElement.getElementsByTag("h3")[0].ownText().toString()
+                    val linkUrl = divElement.getElementsByTag("a")[0].absUrl("href")
 //                val linkDescription = divElement.getElementsByTag("span")[0].text().toString()
-                val linkDescription = divElement.getElementsByClass("aCOpRe")[0].text().toString()
-                Log.d(TAG,
-                    "Div Elements:Title: $linkTitle \n Url: $linkUrl \n Desc: $linkDescription")
-                elementsList.add(ElementListItem(linkTitle, linkUrl, linkDescription))
+                    val linkDescription =
+                        divElement.getElementsByClass("aCOpRe")[0].text().toString()
+                    when {
+                        linkTitle.isNullOrEmpty() -> {
+                            Log.d(TAG,
+                                "Div Elements:Title: $linkTitle \n Url: $linkUrl \n Desc: $linkDescription")
+                            elementsList.add(ElementListItem("Title Not Available",
+                                linkUrl,
+                                linkDescription))
+                        }
+                        linkUrl.isNullOrEmpty() -> {
+                            Log.d(TAG,
+                                "Div Elements:Title: $linkTitle \n Url: $linkUrl \n Desc: $linkDescription")
+                            elementsList.add(ElementListItem(linkTitle,
+                                "URL Not Available",
+                                linkDescription))
+                        }
+                        linkDescription.isNullOrEmpty() -> {
+                            Log.d(TAG,
+                                "Div Elements:Title: $linkTitle \n Url: $linkUrl \n Desc: $linkDescription")
+                            elementsList.add(ElementListItem(linkTitle,
+                                linkUrl,
+                                "Description Not Available"))
+                        }
+                        else -> {
+                            Log.d(TAG,
+                                "Div Elements:Title: $linkTitle \n Url: $linkUrl \n Desc: $linkDescription")
+                            elementsList.add(ElementListItem(linkTitle, linkUrl, linkDescription))
+                        }
+                    }
+                }
             }
             return elementsList
         }

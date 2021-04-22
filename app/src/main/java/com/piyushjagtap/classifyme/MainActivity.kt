@@ -53,11 +53,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         supportActionBar!!.setBackgroundDrawable(ColorDrawable(resources.getColor(R.color.semi_transparent)))
-        supportActionBar!!.setDisplayHomeAsUpEnabled(true)
-//        TODO(supportActionBar!!.setBackgroundDrawable())
-        supportActionBar!!.setDisplayUseLogoEnabled(true)
-//        supportActionBar!!.elevation = 0F
-        val view = binding.root
+                val view = binding.root
         setContentView(view)
         // Request camera permissions
         if (allPermissionsGranted()) {
@@ -197,6 +193,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun openImageView(imgURI: Uri) {
+        binding.progressCircular.visibility = View.VISIBLE
+        Thread.sleep(2000)
         Log.d(TAG, "openImageView: ${imgURI.toString()}")
         val intent = Intent(this, ImageViewActivity::class.java).apply {
             action = Intent.ACTION_SEND
@@ -205,6 +203,7 @@ class MainActivity : AppCompatActivity() {
         if (binding.progressCircular.isVisible) {
             binding.progressCircular.visibility = View.INVISIBLE
         }
+        binding.progressCircular.visibility = View.INVISIBLE
         startActivity(intent)
     }
 
