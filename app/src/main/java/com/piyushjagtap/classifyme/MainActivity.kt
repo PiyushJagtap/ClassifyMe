@@ -1,10 +1,13 @@
 package com.piyushjagtap.classifyme
 
 import android.Manifest
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import android.net.ConnectivityManager
+import android.net.NetworkInfo
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
@@ -33,7 +36,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
 
     private var imageCapture: ImageCapture? = null
-
     private lateinit var outputDirectory: File
     private lateinit var cameraExecutor: ExecutorService
 
@@ -43,7 +45,9 @@ class MainActivity : AppCompatActivity() {
         private const val REQUEST_CODE_PERMISSIONS = 10
         private val REQUIRED_PERMISSIONS = arrayOf(
             Manifest.permission.CAMERA,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.ACCESS_NETWORK_STATE
         )
         private const val PICK_IMAGE = 100
     }
@@ -53,9 +57,10 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         supportActionBar!!.setBackgroundDrawable(ColorDrawable(resources.getColor(R.color.semi_transparent)))
-                val view = binding.root
+        val view = binding.root
         setContentView(view)
-        // Request camera permissions
+
+        // Request  permissions
         if (allPermissionsGranted()) {
             startCamera()
         } else {
@@ -63,6 +68,15 @@ class MainActivity : AppCompatActivity() {
                 this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS
             )
         }
+
+        //Check internet connection
+        Thread {
+            val cm = this.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            val activeNetwork: NetworkInfo? = cm.activeNetworkInfo
+            val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
+            Log.d(TAG, "Internet Connection: $isConnected")
+            Toast.makeText(this, "Please Turn on the Internet Connection", Toast.LENGTH_SHORT).show()
+        }.run()
 
         binding.cameraCaptureButton.setOnClickListener {
             Toast.makeText(this, "Click!!!", Toast.LENGTH_SHORT).show()
