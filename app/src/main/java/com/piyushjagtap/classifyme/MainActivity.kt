@@ -4,13 +4,11 @@ import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import android.net.Uri
 import android.os.Bundle
-import android.provider.MediaStore
 import android.util.Log
 import android.view.View
 import android.view.Window
@@ -33,6 +31,7 @@ import java.util.concurrent.Executors
 
 class MainActivity : AppCompatActivity() {
 
+    //MainActivity View Binding
     private lateinit var binding: ActivityMainBinding
 
     private var imageCapture: ImageCapture? = null
@@ -70,35 +69,42 @@ class MainActivity : AppCompatActivity() {
         }
 
         //Check internet connection
-        Thread {
+        Thread {                        //background thread
             val cm = this.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
             val activeNetwork: NetworkInfo? = cm.activeNetworkInfo
             val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
             Log.d(TAG, "Internet Connection: $isConnected")
-            Toast.makeText(this, "Please Turn on the Internet Connection", Toast.LENGTH_SHORT).show()
+            if (!isConnected) {
+                Toast.makeText(this, "Please Turn on the Internet Connection", Toast.LENGTH_SHORT)
+                    .show()
+            }
         }.run()
 
+        //Camera Capture Button Listener
         binding.cameraCaptureButton.setOnClickListener {
-            Toast.makeText(this, "Click!!!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Image Clicked!!!", Toast.LENGTH_SHORT).show()
             takePhoto(savedInstanceState)
         }
 
+        //Image From File manager Button Listener
         binding.galleryImageButton.setOnClickListener {
-            Toast.makeText(this, "Gallery", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Opening FIle Manager", Toast.LENGTH_SHORT).show()
             openGallery()
         }
 
+        //Create a directory for storing photos if doesn't exists.
         outputDirectory = getOutputDirectory()
         if (outputDirectory.exists()) {
-            Toast.makeText(this, "Directory Exists", Toast.LENGTH_SHORT).show()
-            Log.d(TAG, "onCreate: " + outputDirectory.absolutePath)
+            Log.d(TAG, "Directory Success : " + outputDirectory.absolutePath)
         } else {
-            Toast.makeText(this, "Directory Does Not Exists", Toast.LENGTH_SHORT).show()
+            Log.d(TAG, "Directory: $outputDirectory")
+            outputDirectory = getOutputDirectory()
         }
 
         cameraExecutor = Executors.newSingleThreadExecutor()
     }
 
+    //Click Photo and save it in directory function
     private fun takePhoto(savedInstanceState: Bundle?) {
         if (!binding.progressCircular.isVisible) {
             binding.progressCircular.visibility = View.VISIBLE
@@ -137,6 +143,7 @@ class MainActivity : AppCompatActivity() {
             })
     }
 
+    //Start hardware camera and view on ViewPager
     private fun startCamera() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
 
@@ -173,6 +180,7 @@ class MainActivity : AppCompatActivity() {
         }, ContextCompat.getMainExecutor(this))
     }
 
+    //Get directory path
     private fun getOutputDirectory(): File {
         val mediaDir = externalMediaDirs.firstOrNull()?.let {
             File(it, resources.getString(R.string.app_name)).apply { mkdirs() }
@@ -187,6 +195,7 @@ class MainActivity : AppCompatActivity() {
         ) == PackageManager.PERMISSION_GRANTED
     }
 
+    //Permission Requested Result
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -206,6 +215,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    //Open the saved image from camera or from the File intent in ImageViewActivity and send ImageURI
     private fun openImageView(imgURI: Uri) {
         binding.progressCircular.visibility = View.VISIBLE
         Thread.sleep(2000)
@@ -221,20 +231,20 @@ class MainActivity : AppCompatActivity() {
         startActivity(intent)
     }
 
+    //Open File Manager or gallery via Intent
     private fun openGallery() {
         val intent = Intent(Intent.ACTION_GET_CONTENT)
         intent.type = "image/*"
-//        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.INTERNAL_CONTENT_URI)
         startActivityForResult(intent, PICK_IMAGE)
     }
 
+    //Get Result of the file manager intent
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == RESULT_OK && requestCode == PICK_IMAGE) {
             val imageUri = data?.data
             Log.d(TAG, "onActivityResult: $imageUri")
             openImageView(imageUri!!)
-//            imageView.setImageURI(imageUri);
         } else {
             Log.d(TAG, "onActivityResult: $resultCode")
         }
