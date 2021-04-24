@@ -25,7 +25,8 @@
             android:layout_weight="1"
             android:background="@null"
             android:src="@drawable/ic_twotone_history_24"
-            android:visibility="invisible" />
+            android:visibility="invisible"
+            android:contentDescription="@string/content_desc"/>
 
         <View
             android:layout_width="0dp"
@@ -38,7 +39,8 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:background="@null"
-            android:src="@drawable/ic_twotone_camera_24" />
+            android:src="@drawable/ic_twotone_camera_24"
+            android:contentDescription="@string/content_desc"/>
 
         <View
             android:layout_width="0dp"
@@ -52,7 +54,8 @@
             android:layout_gravity="center"
             android:layout_weight="1"
             android:background="@null"
-            android:src="@drawable/ic_twotone_snippet_folder_24" />
+            android:src="@drawable/ic_twotone_snippet_folder_24"
+            android:contentDescription="@string/content_desc"/>
     </LinearLayout>
 
     <androidx.camera.view.PreviewView

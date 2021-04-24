@@ -10,8 +10,17 @@ android {
     buildFeatures {
         viewBinding true
         mlModelBinding true
+
+        applicationVariants.all {
+            variant ->
+                variant.outputs.all {
+                    def app_name = "ClassifyMe"
+                    outputFileName = "${app_name}_${versionName}.apk"
+                }
+
+        }
     }
-    
+
     defaultConfig {
         applicationId "com.piyushjagtap.classifyme"
         minSdkVersion 26
@@ -21,8 +30,8 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
-        ndk{
-            abiFilters 'armeabi-v7a','arm64-v8a'
+        ndk {
+            abiFilters 'armeabi-v7a', 'arm64-v8a'
         }
     }
 

@@ -23,7 +23,7 @@
                 android:layout_height="400dp"
                 android:adjustViewBounds="true"
                 android:elevation="4dp"
-                android:contentDescription="Image"
+                android:contentDescription="@string/content_desc"
                 android:scaleType="centerInside" />
 
             <LinearLayout

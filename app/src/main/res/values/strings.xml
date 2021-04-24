@@ -8,5 +8,6 @@
 
 
     <string name="image_view_fragment_image_label">Image Label</string>
+    <string name="content_desc">Image</string>
     <string name="image_view_fragment_swipe_txt">Swipe To Check more information related to the image ----></string>
 </resources>

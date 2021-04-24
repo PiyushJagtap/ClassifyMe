@@ -11,8 +11,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.piyushjagtap.classifyme.adapter.RecyclerViewAdapter
 import com.piyushjagtap.classifyme.databinding.ImageInfoFragmentBinding
 import org.jsoup.Jsoup
-import java.net.InetSocketAddress
-import java.net.Proxy
 
 class ImageInfoFragment(var imageLabel: String) : Fragment() {
 
@@ -67,14 +65,14 @@ class ImageInfoFragment(var imageLabel: String) : Fragment() {
         override fun doInBackground(vararg params: Void?): ArrayList<ElementListItem> {
             val elementsList = ArrayList<ElementListItem>()
             try {
-            val doc =
-                Jsoup.connect("https://www.google.com/search?q=$imageLabel")
-                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.85 Safari/537.36")
-                    .get()
-            val linkLists = doc!!.getElementsByClass("eqAnXb")
-            val divElements = linkLists[0].getElementsByClass("tF2Cxc")
-            Log.d(TAG, "Main: $linkLists")
-            Log.d(TAG, "Div: $divElements")
+                val doc =
+                    Jsoup.connect("https://www.google.com/search?q=$imageLabel")
+                        .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.85 Safari/537.36")
+                        .get()
+                val linkLists = doc!!.getElementsByClass("eqAnXb")
+                val divElements = linkLists[0].getElementsByClass("tF2Cxc")
+                Log.d(TAG, "Main: $linkLists")
+                Log.d(TAG, "Div: $divElements")
                 for (divElement in divElements) {
                     if (divElement != null && divElement.childrenSize() != 0) {
                         val linkTitle = divElement.getElementsByTag("h3")[0].ownText().toString()
