@@ -40,7 +40,7 @@
                     android:text="@string/image_view_fragment_image_label"
                     android:textAppearance="?attr/textAppearanceHeadline6"
                     android:textAllCaps="true"
-                    android:textColor="@color/red_500_secondary"/>
+                    android:textColor="@color/red_500_secondary" />
             </LinearLayout>
         </LinearLayout>
     </androidx.cardview.widget.CardView>

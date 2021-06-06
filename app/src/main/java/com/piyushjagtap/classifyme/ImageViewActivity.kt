@@ -9,7 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.tabs.TabLayout
 import com.piyushjagtap.classifyme.adapter.TabsAdapter
 import com.piyushjagtap.classifyme.databinding.ActivityImageViewBinding
-import com.piyushjagtap.classifyme.ml.ImageClassificationModel
+import com.piyushjagtap.classifyme.ml.MobilenetV110224Quant
 import org.tensorflow.lite.DataType
 import org.tensorflow.lite.support.image.TensorImage
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
@@ -77,11 +77,11 @@ class ImageViewActivity : AppCompatActivity() {
             val labels =
                 application.assets.open("labels.txt").bufferedReader().use { it.readText() }
                     .split("\n")
-            var resized = Bitmap.createScaledBitmap(bitmap, 224, 224, true)
-            val model = ImageClassificationModel.newInstance(this)
+            val resized = Bitmap.createScaledBitmap(bitmap, 224, 224, true)
+            val model = MobilenetV110224Quant.newInstance(this)
 
-            var tbuffer = TensorImage.fromBitmap(resized)
-            var byteBuffer = tbuffer.buffer
+            val tbuffer = TensorImage.fromBitmap(resized)
+            val byteBuffer = tbuffer.buffer
 
 // Creates inputs for reference.
             val inputFeature0 =
@@ -91,7 +91,7 @@ class ImageViewActivity : AppCompatActivity() {
 // Runs model inference and gets result.
             val outputs = model.process(inputFeature0)
             val outputFeature0 = outputs.outputFeature0AsTensorBuffer
-            var max = getMax(outputFeature0.floatArray)
+            val max = getMax(outputFeature0.floatArray)
             Log.d(TAG, "Model Output : $outputFeature0")
             result = labels[max]
 
@@ -104,13 +104,13 @@ class ImageViewActivity : AppCompatActivity() {
     }
 
     private fun getMax(arr: FloatArray): Int {
-        var ind = 0;
-        var min = 0.0f;
+        var ind = 0
+        var min = 0.0f
 
         for (i in 0..1000) {
             if (arr[i] > min) {
                 min = arr[i]
-                ind = i;
+                ind = i
             }
         }
         return ind
